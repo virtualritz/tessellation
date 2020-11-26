@@ -11,6 +11,7 @@ use bbox::BoundingBox;
 use nalgebra as na;
 use num_traits::Float;
 use rayon::prelude::*;
+use smallvec::SmallVec;
 use std::{
     cell::{Cell, RefCell},
     cmp,
@@ -448,7 +449,7 @@ impl<'a, S: From<f32> + RealField + Float + AsUSize> ManifoldDualContouring<'a, 
         }
     }
     /// Tessellate the given function.
-    pub fn tessellate(&mut self) -> Option<Mesh<S>> {
+    pub fn tessellate<T>(&mut self) -> Option<Mesh<S>> {
         println!(
             "ManifoldDualContouring: res: {:} {:?}",
             self.res,
@@ -921,7 +922,7 @@ impl<'a, S: From<f32> + RealField + Float + AsUSize> ManifoldDualContouring<'a, 
         debug_assert!((edge_index.edge as usize) < 4);
         debug_assert!(edge_index.index.iter().all(|&i| i > 0));
 
-        let mut p = Vec::with_capacity(4);
+        let mut p = SmallVec::new();
         for &quad_egde in &QUADS[edge_index.edge as usize] {
             let point_index = self.lookup_cell_point(
                 quad_egde,
@@ -933,7 +934,7 @@ impl<'a, S: From<f32> + RealField + Float + AsUSize> ManifoldDualContouring<'a, 
                 p.push(point_index)
             }
         }
-        // Only try to generate meshes, if there are more then two points.
+        // Avoid generating degenerate faces.
         if p.len() < 3 {
             return;
         }
@@ -943,12 +944,9 @@ impl<'a, S: From<f32> + RealField + Float + AsUSize> ManifoldDualContouring<'a, 
                 p.reverse();
             }
         }
-        let face_list = &mut self.mesh.borrow_mut().faces;
-        // TODO: Fix this to choose the proper split.
-        face_list.push([p[0], p[1], p[2]]);
-        if p.len() == 4 {
-            face_list.push([p[2], p[3], p[0]]);
-        }
+
+        // Add the face to the mesh.
+        self.mesh.borrow_mut().faces.push(p);
     }
 
     // If a is inside the object and b outside - this method returns the point on the line between
