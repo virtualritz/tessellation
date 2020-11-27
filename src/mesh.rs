@@ -72,12 +72,9 @@ impl<S: Clone> Mesh<S> {
     /// handed) the mesh’s winding order can be reversed with the
     /// `reverse_face_winding` flag.
     #[cfg(feature = "obj")]
-    pub fn to_obj(
-        &self,
-        reverse_face_winding: bool,
-    ) -> Result<Vec<u8>, Box<dyn Error>>
+    pub fn to_obj(&self, reverse_face_winding: bool) -> Result<Vec<u8>, Box<dyn Error>>
     where
-        S: Into<f32>,
+        S: AsPrimitive<f32>,
     {
         let mut file = Vec::new();
 
@@ -87,9 +84,7 @@ impl<S: Clone> Mesh<S> {
             writeln!(
                 file,
                 "v {} {} {}",
-                vertex[0].clone().into(),
-                vertex[1].clone().into(),
-                vertex[2].clone().into()
+                vertex[0].as_(), vertex[1].as_(), vertex[2].as_(),
             )?;
         }
 
@@ -125,12 +120,13 @@ impl<S: Clone> Mesh<S> {
     /// handed) the mesh’s winding order can be reversed with the
     /// `reverse_face_winding` flag.
     #[cfg(feature = "obj")]
-    pub fn export_as_obj(
+    pub fn export_to_obj(
         &self,
         destination: &Path,
         reverse_face_winding: bool,
     ) -> Result<(), Box<dyn Error>>
-    where S: Into<f32>
+    where
+        S: AsPrimitive<f32>,
     {
         let mut file = File::create(destination)?;
         file.write_all(&self.to_obj(reverse_face_winding)?)?;
@@ -141,26 +137,20 @@ impl<S: Clone> Mesh<S> {
 }
 
 #[cfg(feature = "polyhedron-ops")]
-impl<S: Clone + Into<f32>> From<Mesh<S>> for p_ops::Polyhedron {
+impl<S> From<Mesh<S>> for p_ops::Polyhedron {
     fn from(mesh: Mesh<S>) -> p_ops::Polyhedron
     where
-        S: Into<f32>,
+        S: AsPrimitive<f32>,
     {
         p_ops::Polyhedron::from(
             "SDFMesh",
-            mesh
-                .vertices
+            mesh.vertices
                 .iter()
                 .map(|vertex| {
-                    p_ops::Point::new(
-                        vertex[0].clone().into(),
-                        vertex[1].clone().into(),
-                        vertex[2].clone().into(),
-                    )
+                    p_ops::Point::new(vertex[0] as f32, vertex[1] as f32, vertex[2] as f32)
                 })
                 .collect(),
-            mesh
-                .faces
+            mesh.faces
                 .iter()
                 .map(|face| face.iter().map(|index| *index as u32).collect())
                 .collect(),
@@ -205,7 +195,7 @@ impl<S: RealField + Debug> TriangleMesh<S> {
     /// `f32`s.
     pub fn normal<T>(&self, face: usize) -> [T; 3]
     where
-        f32: From<S>,
+        S: Into<f32>,
         T: From<f32>,
     {
         let v: Vec<na::Point3<f32>> = self.faces[face]

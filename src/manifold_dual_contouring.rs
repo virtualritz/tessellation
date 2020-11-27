@@ -449,7 +449,7 @@ impl<'a, S: From<f32> + RealField + Float + AsUSize> ManifoldDualContouring<'a, 
         }
     }
     /// Tessellate the given function.
-    pub fn tessellate<T>(&mut self) -> Option<Mesh<S>> {
+    pub fn tessellate(&mut self) -> Option<Mesh<S>> {
         println!(
             "ManifoldDualContouring: res: {:} {:?}",
             self.res,

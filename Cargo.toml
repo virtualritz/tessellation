@@ -21,11 +21,11 @@ obj = []
 
 [dependencies]
 alga = "0.9"
-nalgebra = "0.22"
+nalgebra = "0.22.1"
 rand = "0.7"
 rayon = "1.5.0"
-once_cell = "1.4"
-bbox = "0.11"
+once_cell = "1.5.2"
+bbox = "0.11.2"
 num-traits = "0.2"
 polyhedron-ops = { path = "../polyhedron-ops", optional = true }
 smallvec = "1.5.0"
@@ -46,3 +46,8 @@ codecov = { repository = "hmeyer/tessellation", branch = "master", service = "gi
 
 [package.metadata.docs.rs]
 features = ["obj", "polyhedron-ops"]
+
+[[example]]
+path = "examples/sphere.rs"
+name = "sphere"
+required-features = [ "obj" ]
