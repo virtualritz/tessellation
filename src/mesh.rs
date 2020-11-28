@@ -1,14 +1,14 @@
 use alga::general::RealField;
 use nalgebra as na;
+#[cfg(any(feature = "obj", feature = "polyhedron-ops"))]
+use num_traits::AsPrimitive;
+#[cfg(feature = "polyhedron-ops")]
+use polyhedron_ops as p_ops;
 use rayon::prelude::*;
 use smallvec::SmallVec;
 use std::fmt::Debug;
-
 #[cfg(feature = "obj")]
 use std::{error::Error, fs::File, io::Write, path::Path};
-
-#[cfg(feature = "polyhedron-ops")]
-use polyhedron_ops as p_ops;
 
 /// A polygon mesh consiting of (mostly) quads and triangles.
 ///
@@ -84,7 +84,9 @@ impl<S: Clone> Mesh<S> {
             writeln!(
                 file,
                 "v {} {} {}",
-                vertex[0].as_(), vertex[1].as_(), vertex[2].as_(),
+                vertex[0].as_(),
+                vertex[1].as_(),
+                vertex[2].as_(),
             )?;
         }
 
@@ -95,7 +97,7 @@ impl<S: Clone> Mesh<S> {
                     for vertex_index in face.iter().rev() {
                         write!(file, " {}", vertex_index + 1)?;
                     }
-                    writeln!(file, "")?;
+                    writeln!(file)?;
                 }
             }
             false => {
@@ -104,7 +106,7 @@ impl<S: Clone> Mesh<S> {
                     for vertex_index in face {
                         write!(file, " {}", vertex_index + 1)?;
                     }
-                    writeln!(file, "")?;
+                    writeln!(file)?;
                 }
             }
         };
@@ -137,18 +139,13 @@ impl<S: Clone> Mesh<S> {
 }
 
 #[cfg(feature = "polyhedron-ops")]
-impl<S> From<Mesh<S>> for p_ops::Polyhedron {
-    fn from(mesh: Mesh<S>) -> p_ops::Polyhedron
-    where
-        S: AsPrimitive<f32>,
-    {
+impl<S: Clone + AsPrimitive<f32>> From<Mesh<S>> for p_ops::Polyhedron {
+    fn from(mesh: Mesh<S>) -> p_ops::Polyhedron {
         p_ops::Polyhedron::from(
             "SDFMesh",
             mesh.vertices
                 .iter()
-                .map(|vertex| {
-                    p_ops::Point::new(vertex[0] as f32, vertex[1] as f32, vertex[2] as f32)
-                })
+                .map(|vertex| p_ops::Point::new(vertex[0].as_(), vertex[1].as_(), vertex[2].as_()))
                 .collect(),
             mesh.faces
                 .iter()
