@@ -122,7 +122,7 @@ impl<S: Clone> Mesh<S> {
     /// handed) the mesh’s winding order can be reversed with the
     /// `reverse_face_winding` flag.
     #[cfg(feature = "obj")]
-    pub fn export_to_obj(
+    pub fn write_to_obj(
         &self,
         destination: &Path,
         reverse_face_winding: bool,

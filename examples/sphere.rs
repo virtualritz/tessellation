@@ -32,5 +32,5 @@ fn main() {
     let mut mdc = tessellation::ManifoldDualContouring::new(&sphere, 0.2, 0.1);
     let mesh = mdc.tessellate().unwrap();
 
-    mesh.export_to_obj(&PathBuf::from("foo.obj"), false);
+    mesh.write_to_obj(&PathBuf::from("foo.obj"), false);
 }

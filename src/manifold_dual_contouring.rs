@@ -922,7 +922,7 @@ impl<'a, S: From<f32> + RealField + Float + AsUSize> ManifoldDualContouring<'a, 
         debug_assert!((edge_index.edge as usize) < 4);
         debug_assert!(edge_index.index.iter().all(|&i| i > 0));
 
-        let mut p = SmallVec::new();
+        let mut p = SmallVec::with_capacity(4);
         for &quad_egde in &QUADS[edge_index.edge as usize] {
             let point_index = self.lookup_cell_point(
                 quad_egde,
